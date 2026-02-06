@@ -9,7 +9,6 @@ import { getMessages } from "../services/message.service.js";
 import {
     CreateConversationInput,
     ConversationIdParam,
-    ConversationQuery,
     MuteConversationInput,
 } from "../schemas/conversation.schema.js";
 
@@ -31,17 +30,21 @@ export async function getConversations(
 }
 
 export async function getConversation(
-    req: Request<ConversationIdParam, object, object, ConversationQuery>,
+    req: Request,
     res: Response,
     next: NextFunction
 ): Promise<void> {
     try {
-        const conversation = await getConversationById(req.params.id, req.user!.id);
+        const id = req.params.id as string;
+        const limit = Number(req.query.limit) || 50;
+        const cursor = req.query.cursor as string | undefined;
+
+        const conversation = await getConversationById(id, req.user!.id);
         const messages = await getMessages(
-            req.params.id,
+            id,
             req.user!.id,
-            req.query.limit,
-            req.query.cursor
+            limit,
+            cursor
         );
 
         res.json({
